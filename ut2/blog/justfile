@@ -1,0 +1,36 @@
+# Run development server
+[group('server')]
+dev port="8000":
+    uv run manage.py runserver {{ port }}
+
+alias c:=check
+# Check Django project
+[group('migrations')]
+check:
+    uv run manage.py check
+
+alias m:=migrate
+# Apply model migrations
+[group('migrations')]
+migrate app="":
+    uv run manage.py migrate {{app}}
+
+# Kill existent manage.py processes
+[group('utils')]
+kill:
+    pkill -f "[Pp]ython.*manage.py runserver" || echo "No process"
+
+# Create a superuser (or update if already exists)
+[group('data')]
+create-su username="admin" password="admin" email="admin@example.com":
+    #!/usr/bin/env bash
+    uv run manage.py shell -v0 -c '
+    from django.contrib.auth.models import User
+    user, _ = User.objects.get_or_create(username="{{ username }}")
+    user.email = "{{ email }}"
+    user.set_password("{{ password }}") 
+    user.is_superuser = True
+    user.is_staff = True
+    user.save()
+    ' 
+    echo "✔ Created superuser → {{ username }}:{{ password }}"
