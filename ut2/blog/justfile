@@ -34,3 +34,42 @@ create-su username="admin" password="admin" email="admin@example.com":
     user.save()
     ' 
     echo "✔ Created superuser → {{ username }}:{{ password }}"
+
+# Add a new app and install it on settings.py
+[group('config')]
+startapp app:
+    #!/usr/bin/env bash
+    uv run manage.py startapp {{ app }}
+    APP_CLASS={{ app }}
+    APP_CONFIG="{{ app }}.apps.${APP_CLASS^}Config"
+    perl -0pi -e "s/(INSTALLED_APPS *= *\[)(.*?)(\])/\1\2    '$APP_CONFIG',\n\3/smg" ./main/settings.py
+    echo "✔ App '{{ app }}' created & added to settings.INSTALLED_APPS"
+
+alias mm:=makemigrations
+# Make model migrations
+[group('migrations')]
+makemigrations app="":
+    uv run manage.py makemigrations {{app}}
+
+alias sm:=showmigrations
+# Show model migrations
+[group('migrations')]
+showmigrations app="":
+    uv run manage.py showmigrations {{app}}
+
+alias sh:=shell
+# Open project (django) shell
+[group('shell')]
+shell:
+    uv run manage.py shell
+
+alias dbsh:=dbshell
+# Open database shell
+[group('shell')]
+dbshell:
+    uv run manage.py dbshell
+
+# Launch a database command (enclosed with '')
+[group('shell')]
+dbcmd command:
+    uv run manage.py dbshell -- '{{ command }}'
