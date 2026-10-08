@@ -1,10 +1,8 @@
-<h1>Post</h1>
-<ul>
+{% extends "base.html" %}
+
+{% block content %}
     {% for post in posts %}
-      <li>
-        <a = href="{% url 'posts:post-detail' post.slug%}">{{post}}</a>
-      </li>
-      {%empty%}
-        <p>No hay posts</p>
+        <h3>{{ post }}</h3>
+        <p>Read more <a href="{% url 'posts:post-detail' post.slug %}">here</a></p>
     {% endfor %}
-</ul>
+{% endblock %}
